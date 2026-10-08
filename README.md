@@ -5,6 +5,8 @@ https://sites.math.washington.edu/~ostroff/puzzles/Heroes_of_Sokoban.html
 
 Basic Sokoban style puzzle game, grid movement, undo mechanic
 
+![LevelScreenshot](data/readMePic.png)
+
 3 Characters
 
 Warrior - can push multiple objects at once
@@ -19,4 +21,3 @@ Wizard - teleports and swaps with object he is facing
 
 ![Wizard](data/wizard.png)
 
-![LevelScreenshot](data/readMePic.png)
