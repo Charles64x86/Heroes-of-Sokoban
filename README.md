@@ -1,5 +1,22 @@
-# Heroes-of-Sokoban
-Heres the original:
+# Heroes-of-Sokoban-WIP
+Original:
+
 https://sites.math.washington.edu/~ostroff/puzzles/Heroes_of_Sokoban.html
-This was inspired by Order of the Sinking Star, which actually came out on steam today, cant wait to play it tomorrow.
-![Heroes of Sokoban gameplay](data/readMePic.png)
+
+Basic Sokoban style puzzle game, grid movement, undo mechanic
+
+3 Characters
+
+Warrior - can push multiple objects at once
+
+![Warrior](data/warrior.png)
+
+Thief - can only pull objects
+
+![Thief](data/thief.png)
+
+Wizard - teleports and swaps with object he is facing
+
+![Wizard](data/wizard.png)
+
+![LevelScreenshot](data/readMePic.png)
