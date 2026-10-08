@@ -41,7 +41,7 @@ char map[11][SIZE_X][SIZE_Y] =
     "xxxxxxxxxxxxx",
     "|||||||||||||",
     "|......r....|",
-    "|.T..b.B.rD.|",
+    "|.I..b.B.rD.|",
     "|...rs.gr...|",
     "|||||||||||||",
     "xxxxxxxxxxxxx",
