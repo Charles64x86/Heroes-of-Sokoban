@@ -26,9 +26,9 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 15
+#define START_LEVEL 22 - 1
 
-int saveLimit = 100;
+int saveLimit = 50;
 const uint8 tileSize = 50;
 
 //------------------- if a character is capitalzed then the level starts 
@@ -191,20 +191,13 @@ int drawScreen(Texture2D sprites)
             if ( tile != TILE_void ) dest = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             
 
-
-            if ( x == p.y && y == p.x ) {
+            if ( (tile == PLAYER_wizard || tile == PLAYER_thief || tile == PLAYER_warrior) && p.level != 21) {
                 DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
-                DrawTexturePro(sprites, sourceTile, dest, origin, 0, WHITE);
+                DrawTexturePro(sprites, sourceTile, dest, origin, 0, GRAY);
             }
             else {
-                if ( tile == PLAYER_wizard || tile == PLAYER_thief || tile == PLAYER_warrior ) {
-                    DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
-                    DrawTexturePro(sprites, sourceTile, dest, origin, 0, GRAY);
-                }
-                else {
-                    DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
-                    DrawTexturePro(sprites, sourceTile, dest, origin, 0, WHITE);
-                }
+                DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
+                DrawTexturePro(sprites, sourceTile, dest, origin, 0, WHITE);
             }
         }
     }
@@ -237,7 +230,7 @@ int saveState(void)
     if ( savePtrCount > saveLimit - 3) {
         saveLimit += 10;
         saveHistory = realloc(saveHistory, saveLimit*(sizeof(saveStruct)));
-        savePtr = saveHistory;
+        savePtr = saveHistory + savePtrCount;
     }
     for ( int x = 0; x < SIZE_X; x++ ) {
         for ( int y = 0; y < SIZE_Y; y++ ) {
@@ -251,6 +244,7 @@ int saveState(void)
     savePtr->pSave.onSwitch = p.onSwitch;
     savePtr++;
     savePtrCount++;
+
     return 0;
 }
 
@@ -365,7 +359,6 @@ int thiefMove(Vector2 delta)
     indy = p.y - delta.y;
 
     if (level[indx][indy] == TILE_rock || level[indx][indy] == PLAYER_warrior || level[indx][indy] == PLAYER_wizard) {
-        //pulling rock
         if  ((floorArray[dx][dy] == TILE_open_gate || floorArray[dx][dy] == TILE_open_blue_gate ) &&
             (floorArray[indx][indy] == TILE_switch || floorArray[indx][indy] == TILE_blue_switch)) {
             return 0;
@@ -377,11 +370,6 @@ int thiefMove(Vector2 delta)
             p.y = dy;
             level[dx][dy] = PLAYER_thief;
         }
-    }
-    else if (level[indx][indy] == PLAYER_thief || 
-             level[indx][indy] == PLAYER_wizard ) {
-        
-
     }
     else if (level[dx][dy] == TILE_floor) {
         level[p.x][p.y] = TILE_floor;
@@ -454,7 +442,6 @@ int switchP(void)
             }
         }
     }
-
     if ( p.type == PLAYER_warrior ) {
         if ( thiefPos.x == -1 && thiefPos.y == -1 ) {
             p.type = PLAYER_wizard;
@@ -493,6 +480,32 @@ int switchP(void)
     }
     return 0;
 }
+int moveAllThree(Vector2 delta)
+{
+    Vector2 warriorPos, thiefPos, wizardPos;
+    if ( level[p.x + (int)delta.x][p.y + (int)delta.y] == TILE_wall) return 0;
+
+    for ( int x = 0; x < SIZE_X; x++ ) {
+        for ( int y = 0; y < SIZE_Y; y++ ) {
+            switch ( level[x][y] ) {
+                case PLAYER_warrior: warriorPos = (Vector2){x, y}; break;
+                case PLAYER_thief:   thiefPos =   (Vector2){x, y}; break;
+                case PLAYER_wizard:  wizardPos =  (Vector2){x, y}; break;
+            }
+        }
+    }
+    level[(int)warriorPos.x][(int)warriorPos.y] = TILE_floor;
+    level[(int)thiefPos.x][(int)thiefPos.y] =     TILE_floor;
+    level[(int)wizardPos.x][(int)wizardPos.y] =   TILE_floor;
+
+    level[(int)warriorPos.x + (int)delta.x][(int)warriorPos.y + (int)delta.y] = PLAYER_warrior;
+    level[(int)thiefPos.x + (int)delta.x][(int)thiefPos.y + (int)delta.y] =     PLAYER_thief;
+    level[(int)wizardPos.x + (int)delta.x][(int)wizardPos.y + (int)delta.y] =   PLAYER_wizard;
+    p.x = wizardPos.x;
+    p.y = wizardPos.y;
+
+    return 0;
+}
 
 int simulate(void)
 {
@@ -505,17 +518,21 @@ int simulate(void)
         case KEY_S: delta.x++; break;
         case KEY_D: delta.y++; break;
         case KEY_C:
-            if ( pCount > 1 ) {
+            if ( pCount > 1 && p.level != 21 ) {
                 saveState();
                 switchP();
             }              
             break;
         case KEY_Z: 
-            if ( savePtr != &saveHistory[0] ) undo();
+            if ( savePtrCount > 0 ) undo();
             break;
     }
 
     if (delta.x == 0 && delta.y == 0) return 0;
+
+    if ( p.level == 21 ) {
+        moveAllThree(delta);
+    }
     
     switch (p.type) {
         case PLAYER_warrior:
