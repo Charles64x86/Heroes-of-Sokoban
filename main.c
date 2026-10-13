@@ -16,6 +16,7 @@
 #include "raymath.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "data/levels.h"
 
 #define APPNAME "Heroes of sokoban"
 
@@ -25,170 +26,11 @@
 
 typedef unsigned char uint8;
 
-#define SIZE_X 13
-#define SIZE_Y 13
-
-#define START_LEVEL 0
+#define START_LEVEL 9
 
 int saveLimit = 10;
 const uint8 tileSize = 50;
 
-char map[11][SIZE_X][SIZE_Y] = 
-{
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "|||||||||||||",
-    "|......r....|",
-    "|.I..b.B.rD.|",
-    "|...rs.gr...|",
-    "|||||||||||||",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "|||||||||||||",
-    "|...|.r.|.r.|",
-    "|.W...r.rrD.|",
-    "|...|.r.|.r.|",
-    "|||||||||||||",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "|||||||||||||",
-    "|...|...|...|",
-    "|.W.r.s.|.D.|",
-    "|...|...g...|",
-    "|||||||||||||",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xx|||||||||xx",
-    "xx|.....|D|xx",
-    "xx|.|r..|g|xx",
-    "xx|.rr.W..|xx",
-    "xx|.......|xx",
-    "xx|.s.s.s.|xx",
-    "xx|.......|xx",
-    "xx|||||||||xx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "|||||||||||||",
-    "|...|..r|...|",
-    "|.T.r.s.|.D.|",
-    "|...|..rg...|",
-    "|||||||||||||",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xx|||||||||xx",
-    "xx|.....|D|xx",
-    "xx|.|r..|g|xx",
-    "xx|.rr.T..|xx",
-    "xx|.......|xx",
-    "xx|.s.s.s.|xx",
-    "xx|.......|xx",
-    "xx|||||||||xx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xx|||||||||xx",
-    "xx|...||D.|xx",
-    "xx|....||G|xx",
-    "xx|....s..|xx",
-    "xx|.|.|.|.|xx",
-    "xx|..r..T.|xx",
-    "xx|||||||||xx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "|||||||||||||",
-    "|...r.s.|...|",
-    "|.I.r.s.g.D.|",
-    "|...|...|...|",
-    "|||||||||||||",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xx|||||||||xx",
-    "xx|.....|D|xx",
-    "xx|.|r..|g|xx",
-    "xx|.rr.I..|xx",
-    "xx|.......|xx",
-    "xx|.s.s.s.|xx",
-    "xx|.......|xx",
-    "xx|||||||||xx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxx|||||||xxx",
-    "xxx|I|D|r|xxx",
-    "xxx|.|.|.|xxx",
-    "xxx|r...r|xxx",
-    "xxx|.|||.|xxx",
-    "xxx|r.r..|xxx",
-    "xxx|||||||xxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-    "|||||||||||||",
-    "|...|...|...|",
-    "|.W...b.g.D.|",
-    "|...|...|...|",
-    "|||||||||||||",
-    "|...|...|...|",
-    "|.I.B.s...D.|",
-    "|...|...|...|",
-    "|||||||||||||",
-    "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
-};
 //------------------- if a character is capitalzed then the level starts 
 // floor      .       with the p controlling them/the p is controlling them
 // void       x
@@ -253,6 +95,8 @@ pstate p = {
     .onSwitch = false
 };
 
+uint8 pCount;
+
 typedef struct saveStruct {
     pstate pSave;   
     tileTypes levelSave[SIZE_X][SIZE_Y];
@@ -271,6 +115,7 @@ tileTypes floorArray[SIZE_X][SIZE_Y];
 
 int initLevel(int levelNum)
 {
+    pCount = 0;
     free(saveHistory);
     saveHistory = malloc(saveLimit*sizeof(saveStruct));
     savePtr = saveHistory;
@@ -285,16 +130,19 @@ int initLevel(int levelNum)
                           p.type = PLAYER_warrior; 
                           level[x][y] = PLAYER_warrior;
                           floorArray[x][y] = TILE_floor;
+                          pCount++;
                           break;
                 case 'T': p.x = x; p.y = y; 
                           p.type = PLAYER_thief;
                           level[x][y] = PLAYER_thief;
                           floorArray[x][y] = TILE_floor;
+                          pCount++;
                           break;
                 case 'I': p.x = x; p.y = y; 
                           p.type = PLAYER_wizard;
                           level[x][y] = PLAYER_wizard;
                           floorArray[x][y] = TILE_floor;
+                          pCount++;
                           break;
                 case '.': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_floor;       break;
                 case '|': level[x][y] = TILE_wall;      floorArray[x][y] = TILE_wall;        break;
@@ -673,6 +521,69 @@ int wizardMove(Vector2 delta)
     return 0;
 }
 
+int switchP(void) 
+{
+    Vector2 warriorPos = (Vector2){-1, -1}; 
+    Vector2 thiefPos =   (Vector2){-1, -1};
+    Vector2 wizardPos =  (Vector2){-1, -1};
+
+    for ( int x = 0; x < SIZE_X; x++ ) {
+        for ( int y = 0; y < SIZE_Y; y++ ) {
+            switch ( level[x][y] ) {
+                case PLAYER_warrior:
+                    warriorPos = (Vector2){x, y};
+                    break;
+                case PLAYER_thief:
+                    thiefPos = (Vector2){x, y};
+                    break;
+                case PLAYER_wizard:
+                    wizardPos = (Vector2){x, y};
+                    break;
+            }
+        }
+    }
+
+    if ( p.type == PLAYER_warrior ) {
+        if ( thiefPos.x == -1 && thiefPos.y == -1 ) {
+            p.type = PLAYER_wizard;
+            p.x = wizardPos.x;
+            p.y = wizardPos.y;
+        }
+        else {
+            p.type = PLAYER_thief;
+            p.x = thiefPos.x;
+            p.y = thiefPos.y;
+        }
+    }
+    else if ( p.type == PLAYER_thief ) {
+        if ( wizardPos.x == -1 && wizardPos.y == -1 ) {
+            p.type = PLAYER_warrior;
+            p.x = warriorPos.x;
+            p.y = warriorPos.y;
+        }
+        else {
+            p.type = PLAYER_wizard;
+            p.x = wizardPos.x;
+            p.y = wizardPos.y;
+        }
+    }
+    else if ( p.type == PLAYER_wizard ) {
+        if ( warriorPos.x == -1 && warriorPos.y == -1 ) {
+            p.type = PLAYER_thief;
+            p.x = thiefPos.x;
+            p.y = thiefPos.y;
+        }
+        else {
+            p.type = PLAYER_warrior;
+            p.x = warriorPos.x;
+            p.y = warriorPos.y;
+        }
+
+    }
+
+
+    return 0;
+}
 
 int simulate(void)
 {
@@ -684,6 +595,12 @@ int simulate(void)
         case KEY_A: delta.y--; break;
         case KEY_S: delta.x++; break;
         case KEY_D: delta.y++; break;
+        case KEY_C:
+            if ( pCount > 1 ) {
+                saveState();
+                switchP();
+            }              
+            break;
         case KEY_Z: 
             if ( savePtr != &saveHistory[0] ) undo();
             break;
@@ -705,8 +622,6 @@ int simulate(void)
             wizardMove(delta);
             break;
     }
-
-
     return 0;
 }
 
