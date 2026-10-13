@@ -1,7 +1,9 @@
+CC = gcc
+CFLAGS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o2 
 main: main.c
-	gcc main.c data/levels.c -o sokoban -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 
+	$(CC) main.c data/levels.c -o sokoban $(CFLAGS)
 clean:
 	rm -rf sokoban
 run:
-	gcc main.c data/levels.c -o sokoban -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 
+	$(CC) main.c data/levels.c -o sokoban $(CFLAGS)
 	./sokoban
