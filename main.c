@@ -26,7 +26,7 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 0
+#define START_LEVEL 13
 
 int saveLimit = 10;
 const uint8 tileSize = 50;
@@ -65,16 +65,10 @@ typedef enum
 
     PLAYER_warrior,
     PLAYER_warrior_on_switch,
-    PLAYER_warrior_in_gate,
-    PLAYER_warrior_in_blue_gate,
     PLAYER_thief,
     PLAYER_thief_on_switch,
-    PLAYER_thief_in_gate,
-    PLAYER_thief_in_blue_gate,
     PLAYER_wizard,
     PLAYER_wizard_on_switch,
-    PLAYER_wizard_in_gate,
-    PLAYER_wizard_in_blue_gate,
 
 } tileTypes;
 
@@ -161,65 +155,6 @@ int initLevel(int levelNum)
     }
     return 0;
 }
-int toggleGates(void) {
-    bool yellowOpen = true;
-    bool blueOpen = true;
-    for ( int x = 0; x < SIZE_X; x++ ) {
-        for ( int y = 0; y < SIZE_Y; y++ ) {
-            if ( floorArray[x][y] == TILE_switch && 
-                 level[x][y] == TILE_floor ) {
-                yellowOpen = false;
-            }
-            else if ( floorArray[x][y] == TILE_blue_switch && 
-                      level[x][y] == TILE_floor ) {
-                blueOpen = false;
-            }
-        }
-    }
-
-    for ( int x = 0; x < SIZE_X; x++ ) {
-        for ( int y = 0; y < SIZE_Y; y++ ) {
-            //yellow switching
-            if ( floorArray[x][y] == TILE_gate || floorArray[x][y] == TILE_open_gate ) {
-                if ( yellowOpen ) {
-                    if (level[x][y] != TILE_rock) level[x][y] = TILE_floor;
-                    floorArray[x][y] = TILE_open_gate;
-                }    
-                else {
-                    level[x][y] = TILE_gate;
-                    floorArray[x][y] = TILE_gate;
-                }                   
-                if (x == p.x && y == p.y) {
-                    switch (p.type) {
-                        case PLAYER_warrior: level[x][y] = PLAYER_warrior_in_gate; break;
-                        case PLAYER_thief:   level[x][y] = PLAYER_thief_in_gate;   break;
-                        case PLAYER_wizard:  level[x][y] = PLAYER_wizard_in_gate;  break;
-                    }
-                } 
-            }
-            //blue switching
-            else if ( floorArray[x][y] == TILE_blue_gate || floorArray[x][y] == TILE_open_blue_gate ) {
-                if ( blueOpen ) {
-                    if (level[x][y] != TILE_rock) level[x][y] = TILE_floor;
-                    floorArray[x][y] = TILE_open_blue_gate;
-                }    
-                else {
-                    level[x][y] = TILE_blue_gate;
-                    floorArray[x][y] = TILE_blue_gate;
-                }                   
-                if (x == p.x && y == p.y) {
-                    switch (p.type) {
-                        case PLAYER_warrior: level[x][y] = PLAYER_warrior_in_blue_gate; break;
-                        case PLAYER_thief:   level[x][y] = PLAYER_thief_in_blue_gate;   break;
-                        case PLAYER_wizard:  level[x][y] = PLAYER_wizard_in_blue_gate;  break;
-                    }
-                } 
-            }
-        }
-    }
-    return 0;
-}
-
 
 int drawScreen(Texture2D sprites)
 {
@@ -237,100 +172,63 @@ int drawScreen(Texture2D sprites)
             tile = level[y][x];
             floor = floorArray[y][x];
             pos = (Vector2){(x+3.2)*tileSize, (y+1)*tileSize};
-            if ( tile == PLAYER_warrior || tile == PLAYER_warrior_on_switch) {
+            switch ( tile ) {
+                case ( PLAYER_warrior ):
+                case ( PLAYER_warrior_on_switch ):
+                    source = (Rectangle){15, 0, 5, 5};
+                    switch ( floor ) {
+                        case TILE_exit:           source = (Rectangle){15, 15, 5, 5}; break;
+                        case TILE_open_gate:      source = (Rectangle){15,  5, 5, 5}; break;
+                        case TILE_open_blue_gate: source = (Rectangle){0,  20, 5, 5}; break;
+                    }
+                    break;
+                
+                case ( PLAYER_thief ):
+                case ( PLAYER_thief_on_switch ):
+                    switch ( floor ) {
+                        case TILE_exit:           source = (Rectangle){15, 20, 5, 5}; break;
+                        case TILE_open_gate:      source = (Rectangle){10, 10, 5, 5}; break;
+                        case TILE_open_blue_gate: source = (Rectangle){10, 20, 5, 5}; break;
+                        default:                  source = (Rectangle){15, 10, 5, 5}; break;
+                    }
+                    break;
+                
+                case ( PLAYER_wizard ):
+                case ( PLAYER_wizard_on_switch ):
+                    switch ( floor ) {
+                        case TILE_exit:           source = (Rectangle){20, 20, 5, 5}; break;
+                        case TILE_open_gate:      source = (Rectangle){5,  10, 5, 5}; break;
+                        case TILE_open_blue_gate: source = (Rectangle){5,  20, 5, 5}; break;
+                        default:                  source = (Rectangle){0,  10, 5, 5}; break;
+                    }
+                    break;
+                
+                case ( TILE_floor ):
+                    switch ( floor ) {
+                        case TILE_switch:         source = (Rectangle){0,  5,  5, 5}; break;
+                        case TILE_blue_switch:    source = (Rectangle){0,  15, 5, 5}; break;
+                        case TILE_open_gate:      source = (Rectangle){10, 5,  5, 5}; break;
+                        case TILE_open_blue_gate: source = (Rectangle){10, 15, 5, 5}; break;
+                        case TILE_exit:           source = (Rectangle){10, 0,  5, 5}; break;
+                        default:                  source = (Rectangle){0,  0,  5, 5}; break;
+                    }
+                    break;
+                
+                case ( TILE_rock ):
+                case ( TILE_rock_on_switch):
+                    switch ( floor ) {
+                        case TILE_exit:           source = (Rectangle){20, 5,  5, 5}; break;
+                        case TILE_open_gate:      source = (Rectangle){20, 10, 5, 5}; break;
+                        case TILE_open_blue_gate: source = (Rectangle){20, 15, 5, 5}; break;
+                        default:                  source = (Rectangle){20, 0,  5, 5}; break;
+                    }
+                    break;
+                case ( TILE_gate):      source = (Rectangle){5,  5,  5, 5}; break;
+                case ( TILE_blue_gate): source = (Rectangle){5,  15, 5, 5}; break;
+                
+                case ( TILE_wall): source = (Rectangle){5, 0, 5, 5}; break;
 
-                source = (Rectangle){15, 0, 5, 5};
-
-                if ( floor == TILE_exit ) {
-                    
-                    source = (Rectangle){15, 15, 5, 5};
-                }
             }
-            else if ( floor == TILE_open_blue_gate ) {
-                if ( tile == PLAYER_warrior_in_blue_gate ) {
-                    source = (Rectangle){0, 20, 5, 5};
-                }
-                else if ( tile == PLAYER_thief_in_blue_gate ) {
-                    source = (Rectangle){10, 20, 5, 5};
-                }
-                else if ( tile == PLAYER_wizard_in_blue_gate ) {
-                    source = (Rectangle){5, 20, 5, 5};
-                }
-                else if ( tile == TILE_rock ) {
-                    source = (Rectangle){20, 15, 5, 5};
-                }
-                else {
-                    source = (Rectangle){10, 15, 5, 5};
-                }
-            }
-            else if ( tile == PLAYER_thief || tile == PLAYER_thief_on_switch) {
-                if ( floor == TILE_gate ) {
-                    source = (Rectangle){10, 10, 5, 5};
-                }
-                else if ( floor == TILE_exit ) {
-                    source = (Rectangle){15, 20, 5, 5};
-                }
-                else {
-                    source = (Rectangle){15, 10, 5, 5};
-                }
-            }
-            else if ( tile == PLAYER_wizard || tile == PLAYER_wizard_on_switch) {
-                source = (Rectangle){0, 10, 5, 5};
-                if ( floor == TILE_exit ) {
-                    source = (Rectangle){20, 20, 5, 5};
-                }
-            }
-            else if ( floor == TILE_exit ) {
-                if ( tile == TILE_rock ) source = (Rectangle){20, 5, 5, 5};
-                else source = (Rectangle){10, 0, 5, 5};
-            }
-            else if( tile == TILE_floor ) {
-                if ( floor == TILE_switch ) {
-                    source = (Rectangle){0, 5, 5, 5};
-                }
-                else if ( floor == TILE_open_gate ) {
-                    source = (Rectangle){10, 5, 5, 5};
-                }
-                else if ( floor == TILE_blue_switch ) {
-                    source = (Rectangle){0, 15, 5, 5};
-                }
-                else {
-                    source = (Rectangle){0, 0, 5, 5};
-                }
-            }
-            else if ( tile == TILE_wall ) {
-                source = (Rectangle){5, 0, 5, 5};
-            }
-            else if ( tile == TILE_rock || tile == TILE_rock_on_switch) {
-                if ( floor == TILE_exit ) {
-                    source = (Rectangle){20, 5, 5, 5};
-                }
-                else if ( floor == TILE_open_gate ) {
-                    source = (Rectangle){20, 10, 5, 5};
-                }
-                else {
-                    source = (Rectangle){20, 0, 5, 5};
-                }
-            }
-            else if ( tile == TILE_gate ) {
-                source = (Rectangle){5, 5, 5, 5};
-            }
-            else if ( tile == TILE_blue_gate ) {
-                source = (Rectangle){5, 15, 5, 5};
-            }
-            else if ( tile == TILE_open_gate ) {
-                source = (Rectangle){10, 5, 5, 5};
-            }
-            else if ( tile == PLAYER_warrior_in_gate ) {
-                source = (Rectangle){15, 5, 5, 5};
-            }
-            else if ( tile == PLAYER_thief_in_gate ) {
-                source = (Rectangle){10, 10, 5, 5};
-            }
-            else if ( tile == PLAYER_wizard_in_gate ) {
-                source = (Rectangle){5, 10, 5, 5};
-            }
-
             if ( tile != TILE_void ) dest = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             DrawTexturePro(sprites, source, dest, origin, 0, WHITE);
         }
@@ -381,6 +279,61 @@ int saveState(void)
     return 0;
 }
 
+int toggleGates(void) {
+    tileTypes tile;
+    bool yellowOpen = true;
+    bool blueOpen = true;
+    for ( int x = 0; x < SIZE_X; x++ ) {
+        for ( int y = 0; y < SIZE_Y; y++ ) {
+            if ( floorArray[x][y] == TILE_switch && 
+                 level[x][y] == TILE_floor ) {
+                yellowOpen = false;
+            }
+            else if ( floorArray[x][y] == TILE_blue_switch && 
+                      level[x][y] == TILE_floor ) {
+                blueOpen = false;
+            }
+        }
+    }
+
+    for ( int x = 0; x < SIZE_X; x++ ) {
+        for ( int y = 0; y < SIZE_Y; y++ ) {
+            //yellow switching
+            if ( floorArray[x][y] == TILE_gate || floorArray[x][y] == TILE_open_gate ) {
+                tile = level[x][y];
+                if ( yellowOpen ) {
+                    if (tile != TILE_rock &&
+                        tile != PLAYER_thief &&
+                        tile != PLAYER_warrior &&
+                        tile != PLAYER_wizard) level[x][y] = TILE_floor;
+                    floorArray[x][y] = TILE_open_gate;
+                }    
+                else {
+                    level[x][y] = TILE_gate;
+                    floorArray[x][y] = TILE_gate;
+                }
+            }
+            //blue switching
+            else if ( floorArray[x][y] == TILE_blue_gate || floorArray[x][y] == TILE_open_blue_gate ) {
+                if ( blueOpen ) {
+                    tile = level[x][y];
+                    if (tile != TILE_rock &&
+                        tile != PLAYER_thief &&
+                        tile != PLAYER_warrior &&
+                        tile != PLAYER_wizard) level[x][y] = TILE_floor;
+                    floorArray[x][y] = TILE_open_blue_gate;
+                }    
+                else {
+                    level[x][y] = TILE_blue_gate;
+                    floorArray[x][y] = TILE_blue_gate;
+                }                   
+            }
+        }
+    }
+    return 0;
+}
+
+
 int warriorMove(Vector2 delta)
 {
     int dx = p.x + delta.x;
@@ -412,6 +365,7 @@ int warriorMove(Vector2 delta)
             level[p.x][p.y] = TILE_floor;
             p.x += delta.x;
             p.y += delta.y;
+            toggleGates();
             return 0;
         }
 
@@ -457,8 +411,8 @@ int thiefMove(Vector2 delta)
         level[p.x][p.y] = TILE_floor;
         p.x = dx;
         p.y = dy;
-        if ( floorArray[dx][dy] == TILE_open_gate ) level[dx][dy] = PLAYER_thief_in_gate;
-        else level[dx][dy] = PLAYER_thief_in_blue_gate;
+        if ( floorArray[dx][dy] == TILE_open_gate ) level[dx][dy] = PLAYER_thief;
+        else level[dx][dy] = PLAYER_thief;
     }
     else if ( level[dx][dy] == TILE_exit) {
         level[p.x][p.y] = TILE_floor;
@@ -482,8 +436,8 @@ int wizardMove(Vector2 delta)
             level[p.x][p.y] = TILE_floor;
             p.x += delta.x;
             p.y += delta.y;
-            if      ( floorArray[p.x][p.y] == TILE_open_gate ) level[p.x][p.y] = PLAYER_wizard_in_gate;
-            else if ( floorArray[p.x][p.y] == TILE_open_blue_gate ) level[p.x][p.y] = PLAYER_wizard_in_blue_gate;
+            if      ( floorArray[p.x][p.y] == TILE_open_gate ) level[p.x][p.y] = PLAYER_wizard;
+            else if ( floorArray[p.x][p.y] == TILE_open_blue_gate ) level[p.x][p.y] = PLAYER_wizard;
             else level[p.x][p.y] = PLAYER_wizard;
             break;
         }
@@ -560,9 +514,7 @@ int switchP(void)
             p.x = warriorPos.x;
             p.y = warriorPos.y;
         }
-
     }
-
     return 0;
 }
 

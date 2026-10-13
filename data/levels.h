@@ -3,7 +3,7 @@
 
 #define SIZE_X 13
 #define SIZE_Y 13
-#define LEVEL_COUNT 12
+#define LEVEL_COUNT 14
 
 extern const char map[LEVEL_COUNT][SIZE_X][SIZE_Y];
 
