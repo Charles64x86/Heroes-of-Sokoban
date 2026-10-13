@@ -26,7 +26,7 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 4
+#define START_LEVEL 11
 
 int saveLimit = 10;
 const uint8 tileSize = 50;
@@ -631,7 +631,7 @@ int main(void)
     while(!WindowShouldClose()) {
         drawScreen(sprites);
         if ( exitCount == pCount ) {
-            WaitTime(1);
+            WaitTime(0.8);
             initLevel(++p.level);
         }
         simulate();

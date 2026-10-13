@@ -155,4 +155,18 @@ const char map[LEVEL_COUNT][SIZE_X][SIZE_Y] =
     "|||||||||||||",
     "xxxxxxxxxxxxx",
     "xxxxxxxxxxxxx",
+
+    "xxxxxxxxxxxxx",
+    "xxxxxxxxxxxxx",
+    "xxxxxxxxxxxxx",
+    "xxxxxxxxxxxxx",
+    "x|||||||||||x",
+    "x|r|..||D.D|x",
+    "x|.|.T.|...|x",
+    "x|.....|..||x",
+    "x|I|||.r..r|x",
+    "x|||||||||||x",
+    "xxxxxxxxxxxxx",
+    "xxxxxxxxxxxxx",
+    "xxxxxxxxxxxxx",
 };
