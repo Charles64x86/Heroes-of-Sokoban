@@ -26,9 +26,9 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 1
+#define START_LEVEL 15
 
-int saveLimit = 10;
+int saveLimit = 100;
 const uint8 tileSize = 50;
 
 //------------------- if a character is capitalzed then the level starts 
@@ -54,9 +54,7 @@ typedef enum
     TILE_floor,
     TILE_exit,
     TILE_rock,
-    TILE_rock_exit,
     TILE_switch,
-    TILE_rock_on_switch,
     TILE_gate,
     TILE_open_gate,
     TILE_blue_switch,
@@ -64,11 +62,8 @@ typedef enum
     TILE_open_blue_gate,
 
     PLAYER_warrior,
-    PLAYER_warrior_on_switch,
     PLAYER_thief,
-    PLAYER_thief_on_switch,
     PLAYER_wizard,
-    PLAYER_wizard_on_switch,
 
 } tileTypes;
 
@@ -143,7 +138,7 @@ int initLevel(int levelNum)
                 case '.': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_floor;       break;
                 case '|': level[x][y] = TILE_wall;      floorArray[x][y] = TILE_wall;        break;
                 case 'x': level[x][y] = TILE_void;      floorArray[x][y] = TILE_wall;        break;
-                case 'D': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_exit;        break;
+                case 'D': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_exit;        exitCount++; break;
                 case 'r': level[x][y] = TILE_rock;      floorArray[x][y] = TILE_floor;       break;
                 case 's': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_switch;      break;
                 case 'g': level[x][y] = TILE_gate;      floorArray[x][y] = TILE_gate;        break;
@@ -158,7 +153,7 @@ int initLevel(int levelNum)
 
 int drawScreen(Texture2D sprites)
 {
-    Rectangle source, dest;
+    Rectangle sourceTile, dest, sourceFloor;
     Vector2 origin, pos;
 
     BeginDrawing();
@@ -173,61 +168,44 @@ int drawScreen(Texture2D sprites)
             floor = floorArray[y][x];
             pos = (Vector2){(x+3.2)*tileSize, (y+1)*tileSize};
             switch ( tile ) {
-                case ( PLAYER_warrior ):
-                case ( PLAYER_warrior_on_switch ):
-                    source = (Rectangle){15, 0, 5, 5};
-                    switch ( floor ) {
-                        case TILE_exit:           source = (Rectangle){15, 15, 5, 5}; break;
-                        case TILE_open_gate:      source = (Rectangle){15,  5, 5, 5}; break;
-                        case TILE_open_blue_gate: source = (Rectangle){0,  20, 5, 5}; break;
-                    }
-                    break;
-                
-                case ( PLAYER_thief ):
-                case ( PLAYER_thief_on_switch ):
-                    switch ( floor ) {
-                        case TILE_exit:           source = (Rectangle){15, 20, 5, 5}; break;
-                        case TILE_open_gate:      source = (Rectangle){10, 10, 5, 5}; break;
-                        case TILE_open_blue_gate: source = (Rectangle){10, 20, 5, 5}; break;
-                        default:                  source = (Rectangle){15, 10, 5, 5}; break;
-                    }
-                    break;
-                case ( PLAYER_wizard ):
-                case ( PLAYER_wizard_on_switch ):
-                    switch ( floor ) {
-                        case TILE_exit:           source = (Rectangle){20, 20, 5, 5}; break;
-                        case TILE_open_gate:      source = (Rectangle){5,  10, 5, 5}; break;
-                        case TILE_open_blue_gate: source = (Rectangle){5,  20, 5, 5}; break;
-                        default:                  source = (Rectangle){0,  10, 5, 5}; break;
-                    }
-                    break;
-                case ( TILE_floor ):
-                    switch ( floor ) {
-                        case TILE_switch:         source = (Rectangle){0,  5,  5, 5}; break;
-                        case TILE_blue_switch:    source = (Rectangle){0,  15, 5, 5}; break;
-                        case TILE_open_gate:      source = (Rectangle){10, 5,  5, 5}; break;
-                        case TILE_open_blue_gate: source = (Rectangle){10, 15, 5, 5}; break;
-                        case TILE_exit:           source = (Rectangle){10, 0,  5, 5}; break;
-                        default:                  source = (Rectangle){0,  0,  5, 5}; break;
-                    }
-                    break;
-                case ( TILE_rock ):
-                case ( TILE_rock_on_switch):
-                    switch ( floor ) {
-                        case TILE_exit:           source = (Rectangle){20, 5,  5, 5}; break;
-                        case TILE_open_gate:      source = (Rectangle){20, 10, 5, 5}; break;
-                        case TILE_open_blue_gate: source = (Rectangle){20, 15, 5, 5}; break;
-                        default:                  source = (Rectangle){20, 0,  5, 5}; break;
-                    }
-                    break;
-                case ( TILE_gate):      source = (Rectangle){5,  5,  5, 5}; break;
-                case ( TILE_blue_gate): source = (Rectangle){5,  15, 5, 5}; break;
-                
-                case ( TILE_wall): source = (Rectangle){5, 0, 5, 5}; break;
-
+                case  PLAYER_warrior:     sourceTile = (Rectangle){15,  0, 5, 5}; break;
+                case  PLAYER_thief:       sourceTile = (Rectangle){15,  5, 5, 5}; break;
+                case  PLAYER_wizard:      sourceTile = (Rectangle){15, 10, 5, 5}; break;
+                case  TILE_rock:          sourceTile = (Rectangle){0,  15, 5, 5}; break;
+                case  TILE_gate:          sourceTile = (Rectangle){5,   5, 5, 5}; break;
+                case  TILE_blue_gate:     sourceTile = (Rectangle){5,  10, 5, 5}; break;
+                case  TILE_wall:          sourceTile = (Rectangle){5,   0, 5, 5}; break;
+                default:                  sourceTile = (Rectangle){15, 15, 5, 5}; 
             }
+
+            switch ( floor ) {
+                case TILE_floor:          sourceFloor = (Rectangle){0,   0, 5, 5}; break;
+                case TILE_exit:           sourceFloor = (Rectangle){10,  0, 5, 5}; break;
+                case TILE_open_gate:      sourceFloor = (Rectangle){10,  5, 5, 5}; break;
+                case TILE_open_blue_gate: sourceFloor = (Rectangle){10, 10, 5, 5}; break;
+                case TILE_switch:         sourceFloor = (Rectangle){0,   5, 5, 5}; break;
+                case TILE_blue_switch:    sourceFloor = (Rectangle){0,  10, 5, 5}; break;
+                case TILE_wall:           sourceTile =  (Rectangle){5,   0, 5, 5}; break;
+            }
+            
             if ( tile != TILE_void ) dest = (Rectangle){pos.x, pos.y, tileSize, tileSize};
-            DrawTexturePro(sprites, source, dest, origin, 0, WHITE);
+            
+
+
+            if ( x == p.y && y == p.x ) {
+                DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
+                DrawTexturePro(sprites, sourceTile, dest, origin, 0, WHITE);
+            }
+            else {
+                if ( tile == PLAYER_wizard || tile == PLAYER_thief || tile == PLAYER_warrior ) {
+                    DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
+                    DrawTexturePro(sprites, sourceTile, dest, origin, 0, GRAY);
+                }
+                else {
+                    DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
+                    DrawTexturePro(sprites, sourceTile, dest, origin, 0, WHITE);
+                }
+            }
         }
     }
     EndDrawing();
@@ -277,8 +255,9 @@ int saveState(void)
 }
 
 
+int currentExits = 0;
 int toggleGates(void) {
-    exitCount = 0;
+    currentExits = 0;
     tileTypes tile;
     bool yellowOpen = true;
     bool blueOpen = true;
@@ -293,13 +272,8 @@ int toggleGates(void) {
                 blueOpen = false;
             }
 
-            printf("%d\n", exitCount);
             if ( floorArray[x][y] == TILE_exit ) {
-                printf("qwe\n");
-                if ( level[x][y] == PLAYER_warrior || level[x][y] == PLAYER_thief || level[x][y] == PLAYER_wizard) exitCount++;
-                else exitCount--;
-                
-
+                if ( level[x][y] == PLAYER_warrior || level[x][y] == PLAYER_thief || level[x][y] == PLAYER_wizard) currentExits++;
             }
         }
     }
@@ -571,7 +545,7 @@ int main(void)
 
     while(!WindowShouldClose()) {
         drawScreen(sprites);
-        if ( exitCount > 0) {
+        if ( exitCount == currentExits ) {
             WaitTime(0.8);
             initLevel(++p.level);
         }
