@@ -26,7 +26,7 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 11
+#define START_LEVEL 0
 
 int saveLimit = 10;
 const uint8 tileSize = 50;
@@ -128,12 +128,6 @@ int initLevel(int levelNum)
         for (int y=0; y < SIZE_Y; y++) {
             tile = map[levelNum][x][y];
             switch (tile) {
-                case 'W': p.x = x; p.y = y;
-                          p.type = PLAYER_warrior; 
-                          level[x][y] = PLAYER_warrior;
-                          floorArray[x][y] = TILE_floor;
-                          pCount++;
-                          break;
                 case 'T': p.x = x; p.y = y; 
                           p.type = PLAYER_thief;
                           level[x][y] = PLAYER_thief;
@@ -146,10 +140,16 @@ int initLevel(int levelNum)
                           floorArray[x][y] = TILE_floor;
                           pCount++;
                           break;
+                case 'W': p.x = x; p.y = y;
+                          p.type = PLAYER_warrior; 
+                          level[x][y] = PLAYER_warrior;
+                          floorArray[x][y] = TILE_floor;
+                          pCount++;
+                          break;
                 case '.': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_floor;       break;
                 case '|': level[x][y] = TILE_wall;      floorArray[x][y] = TILE_wall;        break;
                 case 'x': level[x][y] = TILE_void;      floorArray[x][y] = TILE_wall;        break;
-                case 'D': level[x][y] = TILE_exit;      floorArray[x][y] = TILE_exit;        break;
+                case 'D': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_exit;        break;
                 case 'r': level[x][y] = TILE_rock;      floorArray[x][y] = TILE_floor;       break;
                 case 's': level[x][y] = TILE_floor;     floorArray[x][y] = TILE_switch;      break;
                 case 'g': level[x][y] = TILE_gate;      floorArray[x][y] = TILE_gate;        break;
@@ -281,7 +281,8 @@ int drawScreen(Texture2D sprites)
                 }
             }
             else if ( floor == TILE_exit ) {
-                source = (Rectangle){10, 0, 5, 5};
+                if ( tile == TILE_rock ) source = (Rectangle){20, 5, 5, 5};
+                else source = (Rectangle){10, 0, 5, 5};
             }
             else if( tile == TILE_floor ) {
                 if ( floor == TILE_switch ) {
@@ -380,63 +381,43 @@ int saveState(void)
     return 0;
 }
 
-int warriorMove(Vector2 delta, Vector2 tilePos)
+int warriorMove(Vector2 delta)
 {
-    int dx, dy, pX, pY;
-    tileTypes tileBehind, tileMovedTo;
-    bool moved = false;
-    dx = tilePos.x + delta.x;
-    dy = tilePos.y + delta.y;
-    pX = p.x + delta.x;
-    pY = p.y + delta.y;
-    if ( floorArray[p.x][p.y] == TILE_switch ) {
-        p.onSwitch = true;
-    }
-    else p.onSwitch = false;
+    int dx = p.x + delta.x;
+    int dy = p.y + delta.y;
+    tileTypes nextTile = level[dx][dy];
+    tileTypes nextFloor = floorArray[dx][dy];
 
-    if      ( level[dx][dy] == TILE_wall ) return 0;
-    else if ( level[pX][pY] == TILE_exit)  {
-        moved = true;
-        tileBehind = TILE_floor;
-        tileMovedTo = PLAYER_warrior;
-        exitCount++;
+    if ( level[p.x+(int)delta.x][p.y+(int)delta.y] == TILE_floor ) {
+        level[p.x][p.y] = TILE_floor;   
+        p.x += delta.x;
+        p.y += delta.y;
+        level[p.x][p.y] = PLAYER_warrior;
+        return 0;
     }
-    else if ( level[dx][dy] == TILE_floor) {
-        if ( floorArray[pX][pY] == TILE_exit) {
-            moved = true;
-            tileBehind = TILE_floor;
-            tileMovedTo = PLAYER_warrior;
-            exitCount++;
+
+    int i = 1;
+    tileTypes pushArray[SIZE_X];
+    for (;;) {
+        nextTile = level[p.x+(int)delta.x*i][p.y+(int)delta.y*i];
+        nextFloor = floorArray[p.x+(int)delta.x*i][p.y+(int)delta.y*i];
+
+        if ( nextTile == TILE_wall || i > SIZE_X -2) return 0;
+
+        if ( nextTile == TILE_floor ) {
+            for ( int n = 1; n <= i; n++ ) {
+                level[p.x+(int)delta.x*n][p.y+(int)delta.y*n] = pushArray[n - 1];
+            }
+            level[p.x+(int)delta.x][p.y+(int)delta.y] = PLAYER_warrior;
+            level[p.x][p.y] = TILE_floor;
+            p.x += delta.x;
+            p.y += delta.y;
+            return 0;
         }
-        else {
-            moved = true;
-            level[dx][dy] = TILE_rock;
-            tileBehind = TILE_floor;
-            tileMovedTo = PLAYER_warrior;
-        }
-    }
-    else if ( level[dx][dy] == TILE_rock ) {
-        warriorMove(delta, Vector2Add(tilePos, delta));
-        
-    }
-    else if ( level[dx][dy] == TILE_exit ) {
-        moved = true;
-        level[dx][dy] = TILE_rock;
-        tileBehind = TILE_floor;
-        tileMovedTo = PLAYER_warrior;
-    }
-    else if ( level[dx][dy] == TILE_rock_exit ) {
-        warriorMove(delta, Vector2Add(tilePos, delta));
-    }
-    if (moved) {
-        level[p.x][p.y] = tileBehind;
-        p.x = pX;
-        p.y = pY;
-        level[p.x][p.y] = tileMovedTo;
-        toggleGates();
 
+        pushArray[i] = nextTile;
+        i++;
     }
-
     return 0;
 }
 int thiefMove(Vector2 delta)
@@ -447,19 +428,24 @@ int thiefMove(Vector2 delta)
     indx = p.x - delta.x;
     indy = p.y - delta.y;
 
-    if (level[indx][indy] == TILE_rock) {
+    if (level[indx][indy] == TILE_rock || level[indx][indy] == PLAYER_warrior || level[indx][indy] == PLAYER_wizard) {
         //pulling rock
         if  ((floorArray[dx][dy] == TILE_open_gate || floorArray[dx][dy] == TILE_open_blue_gate ) &&
             (floorArray[indx][indy] == TILE_switch || floorArray[indx][indy] == TILE_blue_switch)) {
             return 0;
         }
         else if  (level[dx][dy] == TILE_floor || floorArray[p.x][p.y] == TILE_open_gate || floorArray[p.x][p.y] == TILE_open_blue_gate ) { 
-            level[p.x][p.y] = TILE_rock;
+            level[p.x][p.y] = level[indx][indy];
             level[indx][indy] = TILE_floor;
             p.x = dx;
             p.y = dy;
             level[dx][dy] = PLAYER_thief;
         }
+    }
+    else if (level[indx][indy] == PLAYER_thief || 
+             level[indx][indy] == PLAYER_wizard ) {
+        
+
     }
     else if (level[dx][dy] == TILE_floor) {
         level[p.x][p.y] = TILE_floor;
@@ -486,13 +472,13 @@ int thiefMove(Vector2 delta)
 }
 
 int wizardMove(Vector2 delta)
-
 {   tileTypes nextTile = level[(int)(p.x+delta.x)][(int)(p.y+delta.y)];
     if ( nextTile == TILE_wall || nextTile == TILE_gate || nextTile == TILE_blue_gate ) return 0;
 
     for( int i = 1; i < SIZE_X; i++ ) {
-        if ( level[(int)(p.x+delta.x*i)][(int)(p.y+delta.y*i)] == TILE_wall || 
-             level[(int)(p.x+delta.x*i)][(int)(p.y+delta.y*i)] == TILE_gate ) {
+        nextTile = level[(int)(p.x+delta.x*i)][(int)(p.y+delta.y*i)];
+
+        if ( nextTile == TILE_wall || nextTile == TILE_gate ) {
             level[p.x][p.y] = TILE_floor;
             p.x += delta.x;
             p.y += delta.y;
@@ -501,9 +487,9 @@ int wizardMove(Vector2 delta)
             else level[p.x][p.y] = PLAYER_wizard;
             break;
         }
-        else if ( level[(int)(p.x+delta.x*i)][(int)(p.y+delta.y*i)] == TILE_rock ) {
+        else if ( nextTile == TILE_rock || nextTile == PLAYER_warrior || nextTile == PLAYER_thief) {
             level[(int)(p.x+delta.x*i)][(int)(p.y+delta.y*i)] = PLAYER_wizard;
-            level[p.x][p.y] = TILE_rock;
+            level[p.x][p.y] = nextTile;
             p.x += delta.x*i;
             p.y += delta.y*i;
             
@@ -606,7 +592,7 @@ int simulate(void)
     switch (p.type) {
         case PLAYER_warrior:
             saveState();
-            warriorMove(delta, (Vector2){p.x, p.y});
+            warriorMove(delta);
             break;
         case PLAYER_thief:
             saveState();
