@@ -26,7 +26,7 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 9
+#define START_LEVEL 4
 
 int saveLimit = 10;
 const uint8 tileSize = 50;
@@ -96,6 +96,7 @@ pstate p = {
 };
 
 uint8 pCount;
+uint8 exitCount;
 
 typedef struct saveStruct {
     pstate pSave;   
@@ -115,6 +116,7 @@ tileTypes floorArray[SIZE_X][SIZE_Y];
 
 int initLevel(int levelNum)
 {
+    exitCount = 0;
     pCount = 0;
     free(saveHistory);
     saveHistory = malloc(saveLimit*sizeof(saveStruct));
@@ -236,110 +238,99 @@ int drawScreen(Texture2D sprites)
             floor = floorArray[y][x];
             pos = (Vector2){(x+3.2)*tileSize, (y+1)*tileSize};
             if ( tile == PLAYER_warrior || tile == PLAYER_warrior_on_switch) {
+
                 source = (Rectangle){15, 0, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
+
+                if ( floor == TILE_exit ) {
+                    
+                    source = (Rectangle){15, 15, 5, 5};
+                }
             }
             else if ( floor == TILE_open_blue_gate ) {
                 if ( tile == PLAYER_warrior_in_blue_gate ) {
                     source = (Rectangle){0, 20, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else if ( tile == PLAYER_thief_in_blue_gate ) {
                     source = (Rectangle){10, 20, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else if ( tile == PLAYER_wizard_in_blue_gate ) {
                     source = (Rectangle){5, 20, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else if ( tile == TILE_rock ) {
                     source = (Rectangle){20, 15, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else {
                     source = (Rectangle){10, 15, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
             }
             else if ( tile == PLAYER_thief || tile == PLAYER_thief_on_switch) {
                 if ( floor == TILE_gate ) {
                     source = (Rectangle){10, 10, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
+                }
+                else if ( floor == TILE_exit ) {
+                    source = (Rectangle){15, 20, 5, 5};
                 }
                 else {
                     source = (Rectangle){15, 10, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
             }
             else if ( tile == PLAYER_wizard || tile == PLAYER_wizard_on_switch) {
                 source = (Rectangle){0, 10, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
+                if ( floor == TILE_exit ) {
+                    source = (Rectangle){20, 20, 5, 5};
+                }
+            }
+            else if ( floor == TILE_exit ) {
+                source = (Rectangle){10, 0, 5, 5};
             }
             else if( tile == TILE_floor ) {
                 if ( floor == TILE_switch ) {
                     source = (Rectangle){0, 5, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else if ( floor == TILE_open_gate ) {
                     source = (Rectangle){10, 5, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else if ( floor == TILE_blue_switch ) {
                     source = (Rectangle){0, 15, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else {
                     source = (Rectangle){0, 0, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
             }
             else if ( tile == TILE_wall ) {
                 source = (Rectangle){5, 0, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
             else if ( tile == TILE_rock || tile == TILE_rock_on_switch) {
                 if ( floor == TILE_exit ) {
                     source = (Rectangle){20, 5, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else if ( floor == TILE_open_gate ) {
                     source = (Rectangle){20, 10, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
                 else {
                     source = (Rectangle){20, 0, 5, 5};
-                    dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
                 }
-            }
-            else if ( tile == TILE_exit ) {
-                source = (Rectangle){10, 0, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
             else if ( tile == TILE_gate ) {
                 source = (Rectangle){5, 5, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
             else if ( tile == TILE_blue_gate ) {
                 source = (Rectangle){5, 15, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
             else if ( tile == TILE_open_gate ) {
                 source = (Rectangle){10, 5, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
             else if ( tile == PLAYER_warrior_in_gate ) {
                 source = (Rectangle){15, 5, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
             else if ( tile == PLAYER_thief_in_gate ) {
                 source = (Rectangle){10, 10, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
             else if ( tile == PLAYER_wizard_in_gate ) {
                 source = (Rectangle){5, 10, 5, 5};
-                dest   = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             }
 
+            if ( tile != TILE_void ) dest = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             DrawTexturePro(sprites, source, dest, origin, 0, WHITE);
         }
     }
@@ -405,20 +396,24 @@ int warriorMove(Vector2 delta, Vector2 tilePos)
 
     if      ( level[dx][dy] == TILE_wall ) return 0;
     else if ( level[pX][pY] == TILE_exit)  {
-        p.level++;
-        initLevel(p.level);
+        moved = true;
+        tileBehind = TILE_floor;
+        tileMovedTo = PLAYER_warrior;
+        exitCount++;
     }
     else if ( level[dx][dy] == TILE_floor) {
         if ( floorArray[pX][pY] == TILE_exit) {
-            p.level++;
-            initLevel(p.level);
-            return 0;
+            moved = true;
+            tileBehind = TILE_floor;
+            tileMovedTo = PLAYER_warrior;
+            exitCount++;
         }
-
-        moved = true;
-        level[dx][dy] = TILE_rock;
-        tileBehind = TILE_floor;
-        tileMovedTo = PLAYER_warrior;
+        else {
+            moved = true;
+            level[dx][dy] = TILE_rock;
+            tileBehind = TILE_floor;
+            tileMovedTo = PLAYER_warrior;
+        }
     }
     else if ( level[dx][dy] == TILE_rock ) {
         warriorMove(delta, Vector2Add(tilePos, delta));
@@ -480,9 +475,11 @@ int thiefMove(Vector2 delta)
         else level[dx][dy] = PLAYER_thief_in_blue_gate;
     }
     else if ( level[dx][dy] == TILE_exit) {
-        p.level++;
-        initLevel(p.level);
-        
+        level[p.x][p.y] = TILE_floor;
+        p.x = dx;
+        p.y = dy;
+        level[dx][dy] = PLAYER_thief;
+        exitCount++;
     }
     toggleGates();
     return 0;
@@ -514,8 +511,7 @@ int wizardMove(Vector2 delta)
         }
     }
     if ( floorArray[p.x][p.y] == TILE_exit ) {
-        p.level++;
-        initLevel(p.level);
+        exitCount++;
     }
     toggleGates();
     return 0;
@@ -581,7 +577,6 @@ int switchP(void)
 
     }
 
-
     return 0;
 }
 
@@ -635,6 +630,10 @@ int main(void)
 
     while(!WindowShouldClose()) {
         drawScreen(sprites);
+        if ( exitCount == pCount ) {
+            WaitTime(1);
+            initLevel(++p.level);
+        }
         simulate();
     }
     free(saveHistory);
