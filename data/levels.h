@@ -6,5 +6,6 @@
 #define LEVEL_COUNT 22
 
 extern const char map[LEVEL_COUNT][SIZE_X][SIZE_Y];
+extern const int levelSizes[LEVEL_COUNT][2];
 
 #endif

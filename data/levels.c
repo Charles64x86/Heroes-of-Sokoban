@@ -1,5 +1,30 @@
 #include "levels.h"
 
+const int levelSizes[LEVEL_COUNT][2] =
+{
+    {13, 5},
+    {13, 5},
+    {13, 5},
+    {9, 8},
+    {13, 5},
+    {9, 8},
+    {9, 6},
+    {13, 5},
+    {9, 8},
+    {6, 7},
+    {13, 9},
+    {11, 6},
+    {11, 7},
+    {13, 10},
+    {13, 5},
+    {11, 6},
+    {9, 10},
+    {13, 9},
+    {7, 7},
+    {8, 7},
+    {13, 13},
+    {13, 7}
+};
 const char map[LEVEL_COUNT][SIZE_X][SIZE_Y] = 
 {
     "xxxxxxxxxxxxx",
@@ -7,8 +32,8 @@ const char map[LEVEL_COUNT][SIZE_X][SIZE_Y] =
     "xxxxxxxxxxxxx",
     "xxxxxxxxxxxxx",
     "|||||||||||||",
-    "|.......r...|",
-    "|.I.T.W.r.D.|",
+    "|...........|",
+    "|.W.......D.|",
     "|...........|",
     "|||||||||||||",
     "xxxxxxxxxxxxx",
@@ -89,7 +114,6 @@ const char map[LEVEL_COUNT][SIZE_X][SIZE_Y] =
     "xxxxxxxxxxxxx",
     "xxxxxxxxxxxxx",
     "xxxxxxxxxxxxx",
-    "xxxxxxxxxxxxx",
     "xx|||||||||xx",
     "xx|...||D.|xx",
     "xx|....||G|xx",
@@ -97,6 +121,7 @@ const char map[LEVEL_COUNT][SIZE_X][SIZE_Y] =
     "xx|.|.|.|.|xx",
     "xx|..r..T.|xx",
     "xx|||||||||xx",
+    "xxxxxxxxxxxxx",
     "xxxxxxxxxxxxx",
     "xxxxxxxxxxxxx",
 

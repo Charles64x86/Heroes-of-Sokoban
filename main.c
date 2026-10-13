@@ -1,24 +1,9 @@
-////////////////////////
-//  
-//  04/10/2026 ~200lines, first level, no graphics drawing, warrior movement, 
-//                        no boxes yet, decent foundation to build on with thief and wizard tmrw,
-//                        took alot of inspiration from sean barrets promesst source code, great game btw :)
-//
-//  05/10/2026 ~150lines  added spritesheet, rocks pushable by warrior, i think they work fine with exits now,
-//                        on to level 3 with switches and gates, gotta add rewind soon, i can probably refactor 
-//                        the warrior logic code into 50 lines but ughh... tomorrow me might
-//
-//  06/10/2026 ~100lines, 1hour refactoring warrior code, still shit. 2-3hours stuck on implementing switches/gates
-//                        all switches must be on for all doors to be on, no less no more. gonna do some more later
-//                        issues when pushing rocks over switches, ex 2 rocks over switch into door, 2 rocks into switch etc.
-//
 #include "raylib.h"
 #include "raymath.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include "data/levels.h"
 
-#define APPNAME "Heroes of sokoban"
+#define APPNAME "Heroes of Sokoban"
 
 //default screen size
 #define SCREEN_X 1024
@@ -26,13 +11,14 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 22 - 1
+#define START_LEVEL 20 - 1
 
 int saveLimit = 50;
+int currentExits = 0;
 const uint8 tileSize = 50;
 
-//------------------- if a character is capitalzed then the level starts 
-// floor      .       with the p controlling them/the p is controlling them
+//-------------------  
+// floor      .       
 // void       x
 // warrior    w,W pushy dude
 // thief      t,T pully lady
@@ -107,6 +93,7 @@ int initLevel(int levelNum)
 {
     pCount = 0;
     exitCount = 0;
+    currentExits = 0;
     free(saveHistory);
     saveHistory = malloc(saveLimit*sizeof(saveStruct));
     savePtr = saveHistory;
@@ -161,12 +148,13 @@ int drawScreen(Texture2D sprites)
 
     char tile, floor;
     origin = (Vector2){0, 0};
+    int xScale = SCREEN_X / tileSize * levelSizes[p.level][1];
+    int yScale = SCREEN_Y / tileSize * levelSizes[p.level][2];
 
     for (int y=0; y < SIZE_Y; y++) {
         for (int x=0; x < SIZE_X; x++) {
             tile = level[y][x];
             floor = floorArray[y][x];
-            pos = (Vector2){(x+3.2)*tileSize, (y+1)*tileSize};
             switch ( tile ) {
                 case  PLAYER_warrior:     sourceTile = (Rectangle){15,  0, 5, 5}; break;
                 case  PLAYER_thief:       sourceTile = (Rectangle){15,  5, 5, 5}; break;
@@ -187,11 +175,15 @@ int drawScreen(Texture2D sprites)
                 case TILE_blue_switch:    sourceFloor = (Rectangle){0,  10, 5, 5}; break;
                 case TILE_wall:           sourceTile =  (Rectangle){5,   0, 5, 5}; break;
             }
-            
+            pos = (Vector2){x*xScale, y*yScale};
+
             if ( tile != TILE_void ) dest = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             
-
-            if ( (tile == PLAYER_wizard || tile == PLAYER_thief || tile == PLAYER_warrior) && p.level != 21) {
+            if ( y == p.x && x == p.y ) {
+                DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
+                DrawTexturePro(sprites, sourceTile, dest, origin, 0, WHITE);
+            }
+            else if ( (tile == PLAYER_wizard || tile == PLAYER_thief || tile == PLAYER_warrior) && p.level != 21) {
                 DrawTexturePro(sprites, sourceFloor, dest, origin, 0, WHITE);
                 DrawTexturePro(sprites, sourceTile, dest, origin, 0, GRAY);
             }
@@ -201,6 +193,8 @@ int drawScreen(Texture2D sprites)
             }
         }
     }
+    DrawText("Heroes of Sokoban", tileSize * 7,  SCREEN_Y / 30, 30, YELLOW);
+
     EndDrawing();
 
     return 0;
@@ -249,7 +243,6 @@ int saveState(void)
 }
 
 
-int currentExits = 0;
 int toggleGates(void) {
     currentExits = 0;
     tileTypes tile;
