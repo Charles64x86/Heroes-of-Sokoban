@@ -26,7 +26,7 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 13
+#define START_LEVEL 1
 
 int saveLimit = 10;
 const uint8 tileSize = 50;
@@ -90,7 +90,7 @@ pstate p = {
 };
 
 uint8 pCount;
-uint8 exitCount;
+int exitCount;
 
 typedef struct saveStruct {
     pstate pSave;   
@@ -110,8 +110,8 @@ tileTypes floorArray[SIZE_X][SIZE_Y];
 
 int initLevel(int levelNum)
 {
-    exitCount = 0;
     pCount = 0;
+    exitCount = 0;
     free(saveHistory);
     saveHistory = malloc(saveLimit*sizeof(saveStruct));
     savePtr = saveHistory;
@@ -192,7 +192,6 @@ int drawScreen(Texture2D sprites)
                         default:                  source = (Rectangle){15, 10, 5, 5}; break;
                     }
                     break;
-                
                 case ( PLAYER_wizard ):
                 case ( PLAYER_wizard_on_switch ):
                     switch ( floor ) {
@@ -202,7 +201,6 @@ int drawScreen(Texture2D sprites)
                         default:                  source = (Rectangle){0,  10, 5, 5}; break;
                     }
                     break;
-                
                 case ( TILE_floor ):
                     switch ( floor ) {
                         case TILE_switch:         source = (Rectangle){0,  5,  5, 5}; break;
@@ -213,7 +211,6 @@ int drawScreen(Texture2D sprites)
                         default:                  source = (Rectangle){0,  0,  5, 5}; break;
                     }
                     break;
-                
                 case ( TILE_rock ):
                 case ( TILE_rock_on_switch):
                     switch ( floor ) {
@@ -279,7 +276,9 @@ int saveState(void)
     return 0;
 }
 
+
 int toggleGates(void) {
+    exitCount = 0;
     tileTypes tile;
     bool yellowOpen = true;
     bool blueOpen = true;
@@ -292,6 +291,15 @@ int toggleGates(void) {
             else if ( floorArray[x][y] == TILE_blue_switch && 
                       level[x][y] == TILE_floor ) {
                 blueOpen = false;
+            }
+
+            printf("%d\n", exitCount);
+            if ( floorArray[x][y] == TILE_exit ) {
+                printf("qwe\n");
+                if ( level[x][y] == PLAYER_warrior || level[x][y] == PLAYER_thief || level[x][y] == PLAYER_wizard) exitCount++;
+                else exitCount--;
+                
+
             }
         }
     }
@@ -365,7 +373,7 @@ int warriorMove(Vector2 delta)
             level[p.x][p.y] = TILE_floor;
             p.x += delta.x;
             p.y += delta.y;
-            toggleGates();
+
             return 0;
         }
 
@@ -419,9 +427,7 @@ int thiefMove(Vector2 delta)
         p.x = dx;
         p.y = dy;
         level[dx][dy] = PLAYER_thief;
-        exitCount++;
     }
-    toggleGates();
     return 0;
 }
 
@@ -450,10 +456,6 @@ int wizardMove(Vector2 delta)
             break;
         }
     }
-    if ( floorArray[p.x][p.y] == TILE_exit ) {
-        exitCount++;
-    }
-    toggleGates();
     return 0;
 }
 
@@ -555,6 +557,7 @@ int simulate(void)
             wizardMove(delta);
             break;
     }
+    toggleGates();
     return 0;
 }
 
@@ -568,7 +571,7 @@ int main(void)
 
     while(!WindowShouldClose()) {
         drawScreen(sprites);
-        if ( exitCount == pCount ) {
+        if ( exitCount > 0) {
             WaitTime(0.8);
             initLevel(++p.level);
         }
@@ -581,3 +584,4 @@ int main(void)
 
     return 0;
 }
+
