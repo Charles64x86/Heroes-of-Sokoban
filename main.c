@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include <stdlib.h>
 #include "data/levels.h"
+#include <stdio.h>
 
 #define APPNAME "Heroes of Sokoban"
 
@@ -11,11 +12,11 @@
 
 typedef unsigned char uint8;
 
-#define START_LEVEL 20 - 1
+#define START_LEVEL 1 - 1
 
 int saveLimit = 50;
 int currentExits = 0;
-const uint8 tileSize = 50;
+uint8 tileSize = 50;
 
 //-------------------  
 // floor      .       
@@ -89,8 +90,22 @@ tileTypes level[SIZE_X][SIZE_Y];
 tileTypes floorArray[SIZE_X][SIZE_Y];
 
 
+uint8 xOffset, yOffset;
+
 int initLevel(int levelNum)
 {
+    xOffset = 0; yOffset = 0;
+    uint8 levelWidth  = levelSizes[p.level][0];
+    uint8 levelHeight = levelSizes[p.level][1];
+    tileSize = (levelWidth > levelHeight) ? SCREEN_X / (levelWidth + 4) : SCREEN_Y / (levelHeight + 3);
+    if ( levelHeight == 13 && levelWidth == 13 ) {
+        xOffset = 4;
+        yOffset = 2;
+    }
+    else if ( levelWidth == 13 )  xOffset = 2;
+    else if ( levelHeight == 13 ) yOffset = 2;
+    
+
     pCount = 0;
     exitCount = 0;
     currentExits = 0;
@@ -148,21 +163,19 @@ int drawScreen(Texture2D sprites)
 
     char tile, floor;
     origin = (Vector2){0, 0};
-    int xScale = SCREEN_X / tileSize * levelSizes[p.level][1];
-    int yScale = SCREEN_Y / tileSize * levelSizes[p.level][2];
 
     for (int y=0; y < SIZE_Y; y++) {
         for (int x=0; x < SIZE_X; x++) {
             tile = level[y][x];
             floor = floorArray[y][x];
             switch ( tile ) {
-                case  PLAYER_warrior:     sourceTile = (Rectangle){15,  0, 5, 5}; break;
-                case  PLAYER_thief:       sourceTile = (Rectangle){15,  5, 5, 5}; break;
-                case  PLAYER_wizard:      sourceTile = (Rectangle){15, 10, 5, 5}; break;
-                case  TILE_rock:          sourceTile = (Rectangle){0,  15, 5, 5}; break;
-                case  TILE_gate:          sourceTile = (Rectangle){5,   5, 5, 5}; break;
-                case  TILE_blue_gate:     sourceTile = (Rectangle){5,  10, 5, 5}; break;
-                case  TILE_wall:          sourceTile = (Rectangle){5,   0, 5, 5}; break;
+                case  PLAYER_warrior:     sourceTile = (Rectangle){15,  0, 5, 5};  break;
+                case  PLAYER_thief:       sourceTile = (Rectangle){15,  5, 5, 5};  break;
+                case  PLAYER_wizard:      sourceTile = (Rectangle){15, 10, 5, 5};  break;
+                case  TILE_rock:          sourceTile = (Rectangle){0,  15, 5, 5};  break;
+                case  TILE_gate:          sourceTile = (Rectangle){5,   5, 5, 5};  break;
+                case  TILE_blue_gate:     sourceTile = (Rectangle){5,  10, 5, 5};  break;
+                case  TILE_wall:          sourceTile = (Rectangle){5,   0, 5, 5};  break;
                 default:                  sourceTile = (Rectangle){15, 15, 5, 5}; 
             }
 
@@ -175,7 +188,7 @@ int drawScreen(Texture2D sprites)
                 case TILE_blue_switch:    sourceFloor = (Rectangle){0,  10, 5, 5}; break;
                 case TILE_wall:           sourceTile =  (Rectangle){5,   0, 5, 5}; break;
             }
-            pos = (Vector2){x*xScale, y*yScale};
+            pos = (Vector2){(x+xOffset)*tileSize, (y+yOffset)*tileSize};
 
             if ( tile != TILE_void ) dest = (Rectangle){pos.x, pos.y, tileSize, tileSize};
             
