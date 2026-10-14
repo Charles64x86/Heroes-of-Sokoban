@@ -153,7 +153,7 @@ int initLevel(int levelNum)
     return 0;
 }
 
-int drawScreen(Texture2D sprites)
+int drawLevel(Texture2D sprites)
 {
     Rectangle sourceTile, dest, sourceFloor;
     Vector2 origin, pos;
@@ -206,7 +206,7 @@ int drawScreen(Texture2D sprites)
             }
         }
     }
-    DrawText("Heroes of Sokoban", tileSize * 7,  SCREEN_Y / 30, 30, YELLOW);
+    DrawText("Heroes of Sokoban", (SCREEN_X / 2) - (SCREEN_X / 7),  SCREEN_Y / 30, 30, YELLOW);
 
     EndDrawing();
 
@@ -512,10 +512,19 @@ int moveAllThree(Vector2 delta)
 
     return 0;
 }
+bool inMenu = true;
+
+typedef enum{
+    new_game_menu,
+    continue_menu
+}menuOptions;
+
+menuOptions menuSelected = continue_menu;
 
 int simulate(void)
 {
     int key = GetKeyPressed();
+    bool enter = false;
     Vector2 newPos;
     Vector2 delta = {0, 0};
     switch (key) {
@@ -523,6 +532,7 @@ int simulate(void)
         case KEY_A: delta.y--; break;
         case KEY_S: delta.x++; break;
         case KEY_D: delta.y++; break;
+        case KEY_R: initLevel(p.level); break;
         case KEY_C:
             if ( pCount > 1 && p.level != 21 ) {
                 saveState();
@@ -532,42 +542,86 @@ int simulate(void)
         case KEY_Z: 
             if ( savePtrCount > 0 ) undo();
             break;
+        case KEY_ESCAPE: 
+            inMenu = inMenu ? false : true;
+            break;
+        case KEY_SPACE:
+            enter = true;
+            break;
     }
 
-    if (delta.x == 0 && delta.y == 0) return 0;
 
-    if ( p.level == 21 ) {
-        moveAllThree(delta);
-    }
+    if ( inMenu ) {
+        if      ( delta.x == -1 ) menuSelected = new_game_menu;
+        else if ( delta.x == 1 )  menuSelected = continue_menu;
+        else if ( enter ) {
+            if ( menuSelected == new_game_menu ) {
+                p.level = 0;
+                initLevel(p.level);
+                inMenu = false;
+            }
+            else if (menuSelected == continue_menu ) {
+                inMenu = false;
+            }
+        }
+        printf("%d\n", menuSelected);
     
-    switch (p.type) {
-        case PLAYER_warrior:
-            saveState();
-            warriorMove(delta);
-            break;
-        case PLAYER_thief:
-            saveState();
-            thiefMove(delta);
-            break;
-        case PLAYER_wizard:
-            saveState();
-            wizardMove(delta);
-            break;
     }
-    toggleGates();
+    if (delta.x == 0 && delta.y == 0) return 0;
+    else {
+        if ( p.level == 21 ) {
+            moveAllThree(delta);
+        }
+        
+        switch (p.type) {
+            case PLAYER_warrior:
+                saveState();
+                warriorMove(delta);
+                break;
+            case PLAYER_thief:
+                saveState();
+                thiefMove(delta);
+                break;
+            case PLAYER_wizard:
+                saveState();
+                wizardMove(delta);
+                break;
+        }
+        toggleGates();
+    }
     return 0;
 }
+int drawMenu(Texture2D menu, Texture2D menuSelector)
+{
+    BeginDrawing();
+    ClearBackground(BLACK);
+    DrawText("Heroes of Sokoban", (SCREEN_X / 2) - (SCREEN_X / 7),  SCREEN_Y / 30, 30, YELLOW);
+    DrawTextureEx(menu, (Vector2){120, 150}, 0, 7, WHITE);
 
-
+    if ( menuSelected == new_game_menu ) {
+        DrawTextureEx(menuSelector, (Vector2){280, 300}, 0, 7, WHITE);
+        DrawTextureEx(menuSelector, (Vector2){640, 300}, 0, 7, WHITE);
+    }
+    else if ( menuSelected == continue_menu ) {
+        DrawTextureEx(menuSelector, (Vector2){280, 367}, 0, 7, WHITE);
+        DrawTextureEx(menuSelector, (Vector2){640, 367}, 0, 7, WHITE);
+    }
+    EndDrawing();
+    return 0;
+}
 
 int main(void)
 {   
     initLevel(START_LEVEL);
     InitWindow(SCREEN_X, SCREEN_Y, APPNAME);
     Texture2D sprites = LoadTexture("data/Sprites.png");
+    Texture2D menu = LoadTexture("data/Menu.png");
+    Texture2D menuSelector = LoadTexture("data/MenuSelector.png");
+    SetExitKey(0);
 
     while(!WindowShouldClose()) {
-        drawScreen(sprites);
+        inMenu ? drawMenu(menu, menuSelector) : drawLevel(sprites);       
+
         if ( exitCount == currentExits ) {
             WaitTime(0.8);
             initLevel(++p.level);
@@ -581,4 +635,3 @@ int main(void)
 
     return 0;
 }
-
